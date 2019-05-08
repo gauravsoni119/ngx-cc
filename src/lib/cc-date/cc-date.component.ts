@@ -20,6 +20,7 @@ import { CardExpirationValidator } from '../validators/ngx-cc-date.validator';
       <input
       ngxNumberOnly
       ngxFormatDate
+      maxlength="7"
       [ngClass]="{'ngx-cc-date-input': !defaultStyles}"
       type="text"
       [placeholder]="placeholder || ''"
@@ -168,9 +169,7 @@ export class CcDateComponent implements OnInit, OnDestroy, DoCheck, ControlValue
   }
 
   writeValue(val: string) {
-    if (val) {
-      this.cardDate = val;
-    }
+    this.cardDate = val || '';
   }
 
   registerOnChange(fn: any) {
@@ -193,7 +192,6 @@ export class CcDateComponent implements OnInit, OnDestroy, DoCheck, ControlValue
 
   updateDate() {
     if (this.ngControl) {
-      console.log(this.ngControl.control.value);
       this.onChanges(this.ngControl.control.value);
       this.ngControl.control.markAsDirty();
       this.cardDate = this.ngControl.control.value;

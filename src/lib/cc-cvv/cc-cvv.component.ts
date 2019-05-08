@@ -168,9 +168,7 @@ export class CcCvvComponent implements OnInit, OnDestroy, DoCheck, ControlValueA
   }
 
   writeValue(val: string) {
-    if (val) {
-      this.cardCvv = val;
-    }
+    this.cardCvv = val || '';
   }
 
   registerOnChange(fn: any) {

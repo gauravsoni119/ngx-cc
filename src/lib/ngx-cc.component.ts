@@ -204,9 +204,7 @@ export class NgxCcComponent implements OnInit, OnDestroy, DoCheck, ControlValueA
   }
 
   writeValue(value: string) {
-    if (value) {
-      this.cardNumber = value;
-    }
+    this.cardNumber = value || '';
   }
 
   registerOnChange(fn: any) {
