@@ -23,6 +23,6 @@
   },
   "dependencies": {
     "card-validator": "^6.2.0",
-    "credit-card-type": "^8.2.0"
+    "credit-card-type": "^8.3.0"
   }
 }
