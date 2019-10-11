@@ -9,6 +9,7 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { Subject, Subscription } from 'rxjs';
+import validator from 'card-validator';
 
 import { CardCvvValidator } from '../validators/ngx-cc-cvv.validator';
 
