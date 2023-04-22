@@ -9,6 +9,25 @@ It can be used with or without angular material. Please look at the demo for mor
   - Validate card date
   - Validate card CVV
 
+# How to install
+
+1. Import the `NgxCcModule` in the desired module. 
+
+```js
+import { NgModule } from '@angular/core';
+import { NgxCcModule } from 'ngx-cc';
+import { AppComponent } from './app.component';
+
+@NgModule({
+  imports: [NgxCcModule],
+  declarations: [AppComponent],
+  bootstrap: [AppComponent]
+})
+export class AppModule {
+}
+```
+
+
 # Components
  **Selector**: ngx-cc
  
