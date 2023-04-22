@@ -1,13 +1,14 @@
 import {
-  Component, HostBinding, Input, Injector,
+  Component, HostBinding, Input, Injector, Optional,
   OnInit, OnDestroy, DoCheck, forwardRef,
-  ViewEncapsulation, ElementRef
+  ElementRef
 } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, NG_VALIDATORS, NgControl } from '@angular/forms';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, NG_VALIDATORS, NgControl, NgForm, FormGroupDirective, FormControl } from '@angular/forms';
 import { FocusMonitor } from '@angular/cdk/a11y';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { ErrorStateMatcher } from '@angular/material/core';
 import { MatFormFieldControl } from '@angular/material/form-field';
-import { Subject } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 import validator from 'card-validator';
 
 import { CardCvvValidator } from '../validators/ngx-cc-cvv.validator';
@@ -123,6 +124,8 @@ export class CcCvvComponent implements OnInit, OnDestroy, DoCheck, ControlValueA
   private _defaultStyles = false;
   // tslint:disable-next-line: variable-name
   private _required = false;
+  // tslint:disable-next-line: variable-name
+  private _formSubmitSubscription: Subscription;
   ngControl: NgControl = null;
   focused = false;
   errorState = false;
@@ -143,8 +146,18 @@ export class CcCvvComponent implements OnInit, OnDestroy, DoCheck, ControlValueA
   constructor(
     private injector: Injector,
     private elRef: ElementRef<HTMLElement>,
-    private fm: FocusMonitor
+    private fm: FocusMonitor,
+    @Optional() private parentForm: NgForm,
+    @Optional() private parentFormGroup: FormGroupDirective,
+    private defaultErrorStateMatcher: ErrorStateMatcher,
   ) {
+    const parent = this.parentFormGroup || this.parentForm;
+    if (parent){
+      this._formSubmitSubscription = parentFormGroup.ngSubmit.subscribe(() => {
+        this.ngControl.control.markAsTouched();
+      });
+    }
+
     fm.monitor(elRef.nativeElement, true).subscribe(origin => {
       this.focused = !!origin;
       this.stateChanges.next();
@@ -162,15 +175,12 @@ export class CcCvvComponent implements OnInit, OnDestroy, DoCheck, ControlValueA
 
   ngDoCheck() {
     if (this.ngControl) {
-      this.errorState = this.ngControl.invalid && this.ngControl.touched;
-      this.stateChanges.next();
+      this.updateErrorState();
     }
   }
 
   writeValue(val: string) {
-    if (val) {
-      this.cardCvv = val;
-    }
+    this.cardCvv = val || '';
   }
 
   registerOnChange(fn: any) {
@@ -206,8 +216,21 @@ export class CcCvvComponent implements OnInit, OnDestroy, DoCheck, ControlValueA
   }
 
   ngOnDestroy() {
+    if (this._formSubmitSubscription) this._formSubmitSubscription.unsubscribe();
     this.fm.stopMonitoring(this.elRef.nativeElement);
     this.stateChanges.complete();
   }
 
+  updateErrorState() {
+    const oldState = this.errorState;
+    const parent = this.parentFormGroup || this.parentForm;
+    const matcher = this.defaultErrorStateMatcher;
+    const control = this.ngControl ? this.ngControl.control as FormControl : null;
+    const newState = matcher.isErrorState(control, parent);
+
+    if (newState !== oldState) {
+      this.errorState = newState;
+      this.stateChanges.next();
+    }
+  }
 }
