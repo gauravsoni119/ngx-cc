@@ -1,16 +1,14 @@
 import {
   Component, HostBinding, Input, Injector,
   OnInit, OnDestroy, DoCheck, forwardRef,
-  ViewEncapsulation, ElementRef
+  ElementRef
 } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, NG_VALIDATORS, NgControl } from '@angular/forms';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, NG_VALIDATORS, NgControl, AbstractControl, ValidationErrors } from '@angular/forms';
 import { FocusMonitor } from '@angular/cdk/a11y';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { Subject } from 'rxjs';
 import validator from 'card-validator';
-
-import { CardCvvValidator } from '../validators/ngx-cc-cvv.validator';
 
 @Component({
   selector: 'ngx-cc-cvv',
@@ -47,7 +45,7 @@ import { CardCvvValidator } from '../validators/ngx-cc-cvv.validator';
     },
     {
       provide: NG_VALIDATORS,
-      useValue: CardCvvValidator,
+      useExisting: forwardRef(() => CcCvvComponent),
       multi: true
     },
     {
@@ -113,6 +111,18 @@ export class CcCvvComponent implements OnInit, OnDestroy, DoCheck, ControlValueA
   set defaultStyles(val: any) {
     this._defaultStyles = coerceBooleanProperty(val);
   }
+
+  @Input('cvv-size')
+  get cvvSize(): number {
+    return this._cvvSize;
+  }
+  set cvvSize(value: number) {
+    this._cvvSize = value;
+    if (this.ngControl) {
+      this.ngControl.control.updateValueAndValidity();
+    }
+  }
+
   // tslint:disable-next-line: variable-name
   private _value: any;
   // tslint:disable-next-line: variable-name
@@ -123,6 +133,8 @@ export class CcCvvComponent implements OnInit, OnDestroy, DoCheck, ControlValueA
   private _defaultStyles = false;
   // tslint:disable-next-line: variable-name
   private _required = false;
+  // tslint:disable-next-line: variable-name
+  private _cvvSize: number;
   ngControl: NgControl = null;
   focused = false;
   errorState = false;
@@ -165,6 +177,11 @@ export class CcCvvComponent implements OnInit, OnDestroy, DoCheck, ControlValueA
       this.errorState = this.ngControl.invalid && this.ngControl.touched;
       this.stateChanges.next();
     }
+  }
+
+  validate(control: AbstractControl): ValidationErrors | null {
+    const cvv = validator.cvv(control.value, this.cvvSize);
+    return cvv.isValid ? null : { invalidCvv: true };
   }
 
   writeValue(val: string) {
